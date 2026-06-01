@@ -1,0 +1,32 @@
+name: Daily Reinsurance Briefing
+
+on:
+  schedule:
+    # 06:30 Zurich time = 04:30 UTC (winter) / 05:30 UTC (summer)
+    # This uses 05:30 UTC which is correct for CEST (summer, Apr–Oct)
+    # Change to 04:30 in winter if you want exactly 06:30 CET
+    - cron: '30 5 * * 1-5'   # Weekdays only, Mon–Fri
+  workflow_dispatch:           # Also allows manual "Run" button in GitHub UI
+
+jobs:
+  send-briefing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run briefing script
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EMAIL_TO:          ${{ secrets.EMAIL_TO }}
+          EMAIL_FROM:        ${{ secrets.EMAIL_FROM }}
+          EMAIL_PASSWORD:    ${{ secrets.EMAIL_PASSWORD }}
+          SMTP_HOST:         ${{ secrets.SMTP_HOST }}
+          SMTP_PORT:         ${{ secrets.SMTP_PORT }}
+        run: python scripts/generate_and_send.py
